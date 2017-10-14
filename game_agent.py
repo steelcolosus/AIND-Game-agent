@@ -35,7 +35,9 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-    raise NotImplementedError
+    player1_moves = len(game.get_legal_moves(player))
+    player2_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    return float(player1_moves - player2_moves)
 
 
 def custom_score_2(game, player):
@@ -112,6 +114,7 @@ class IsolationPlayer:
         positive value large enough to allow the function to return before the
         timer expires.
     """
+
     def __init__(self, search_depth=3, score_fn=custom_score, timeout=10.):
         self.search_depth = search_depth
         self.score = score_fn
@@ -155,6 +158,8 @@ class MinimaxPlayer(IsolationPlayer):
         """
         self.time_left = time_left
 
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
         # Initialize the best move so that this function returns something
         # in case the search fails due to timeout
         best_move = (-1, -1)
@@ -212,8 +217,104 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+
+        best_score = float("-inf")
+        best_move = (-1, -1)
+
+        for legal_move in game.get_legal_moves():
+            branch = game.forecast_move(legal_move)
+            value = self.min_value(branch, depth - 1)
+
+            if value > best_score:
+                best_score = value
+                best_move = legal_move
+
+        return best_move
+
+    def terminal_test(self, game, depth):
+        """
+        Return True if the game is over for the active player
+        and False otherwise.
+
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        depth : int
+            Depth is an integer representing the maximum number of plies to
+            search in the game tree before aborting
+
+        Returns
+        -------
+        bool
+
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        return not bool(game.get_legal_moves()) or depth == 0
+
+    def min_value(self, game, depth):
+        """
+        Return the value for a win according to the score fucntion if the game is over,
+        otherwise return the minimum value over all legal child
+        nodes.
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        depth : int
+            Depth is an integer representing the maximum number of plies to
+            search in the game tree before aborting
+
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        if self.terminal_test(game, depth):
+            return self.score(game, self)
+
+        v = float("inf")
+        for move in game.get_legal_moves():
+            new_branch = game.forecast_move(move)
+            v = min(v, self.max_value(new_branch, depth - 1))
+        return v
+
+    def max_value(self, game, depth):
+        """
+        Return the value for a win according to the score fucntion if the game is over,
+        otherwise return the minimum value over all legal child
+        nodes.
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        depth : int
+            Depth is an integer representing the maximum number of plies to
+            search in the game tree before aborting
+
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        if self.terminal_test(game, depth):
+            return self.score(game, self)
+
+        v = float("-inf")
+        for move in game.get_legal_moves():
+            new_branch = game.forecast_move(move)
+            v = max(v, self.min_value(new_branch, depth - 1))
+
+        return v
 
 
 class AlphaBetaPlayer(IsolationPlayer):
@@ -254,8 +355,20 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         self.time_left = time_left
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        best_move = (-1, -1)
+
+        max_depth = game.width * game.height
+
+        try:
+            for depth in range(1, max_depth):
+                best_move = self.alphabeta(game, depth)
+        except SearchTimeout:
+            pass
+
+        return best_move
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
         """Implement depth-limited minimax search with alpha-beta pruning as
@@ -305,5 +418,116 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+
+
+        best_score = float("-inf")
+        best_move = (-1, -1)
+
+        for legal_move in game.get_legal_moves():
+            branch = game.forecast_move(legal_move)
+            value = self.min_value(branch, depth -1, alpha, beta)
+
+            if value > best_score:
+                best_score = value
+                best_move = legal_move
+
+            alpha = max(alpha, best_score)
+
+        return best_move
+
+    def terminal_test(self, game, depth):
+        """
+        Return True if the game is over for the active player
+        and False otherwise.
+
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        depth : int
+            Depth is an integer representing the maximum number of plies to
+            search in the game tree before aborting
+
+        Returns
+        -------
+        bool
+
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        return not bool(game.get_legal_moves()) or depth == 0
+
+    def min_value(self, game, depth, alpha, beta):
+        """
+        Return the value for a win according to the score fucntion if the game is over,
+        otherwise return the minimum value over all legal child
+        nodes.
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        depth : int
+            Depth is an integer representing the maximum number of plies to
+            search in the game tree before aborting
+
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        if self.terminal_test(game, depth):
+            return self.score(game, self)
+
+        v = float("inf")
+
+        for move in game.get_legal_moves():
+
+            new_branch = game.forecast_move(move)
+
+            v = min(v, self.max_value(new_branch, depth - 1, alpha, beta))
+
+            if v <= alpha:
+                return v
+
+            beta = min(beta, v)
+
+        return v
+
+    def max_value(self, game, depth, alpha, beta):
+        """
+        Return the value for a win according to the score fucntion if the game is over,
+        otherwise return the minimum value over all legal child
+        nodes.
+
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        depth : int
+            Depth is an integer representing the maximum number of plies to
+            search in the game tree before aborting
+
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        if self.terminal_test(game, depth):
+            return self.score(game, self)
+
+        v = float("-inf")
+        for move in game.get_legal_moves():
+            new_branch = game.forecast_move(move)
+            v = max(v, self.min_value(new_branch, depth - 1, alpha, beta))
+
+            if v >= beta:
+                return v
+            alpha = max(alpha, v)
+
+        return v
