@@ -2,6 +2,7 @@
 # Created by https://www.gitignore.io/api/python
 
 ### Python ###
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -47,7 +48,9 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
+
 *,cover
+
 .hypothesis/
 
 # Translations
@@ -80,20 +83,38 @@ target/
 # celery beat schedule file
 celerybeat-schedule
 
+<<<<<<< HEAD
+=======
+# SageMath parsed files
+*.sage.py
+
+>>>>>>> 93d95c0b9b260b4b059e944c6164dcd47f8bf2ab
 # dotenv
 .env
 
 # virtualenv
+
 .venv/
+
 venv/
 ENV/
 
 # Spyder project settings
 .spyderproject
 
+.spyproject
+
 # Rope project settings
 .ropeproject
 
+
 # End of https://www.gitignore.io/api/python
+
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
 
 .idea
